@@ -3,12 +3,6 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { View, Text } from 'react-native' // ensure these are imported
-
-// inside the component's return:
-<View style={{ padding: 8, backgroundColor: '#3b82f6' }}>
-  <Text style={{ color: 'white', fontWeight: 'bold' }}>BUILD: DEMO-MENU v1</Text>
-</View>
 
 import AskScreen from './src/screens/AskScreen';
 import VoteScreen from './src/screens/VoteScreen';
