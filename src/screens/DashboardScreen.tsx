@@ -1,95 +1,87 @@
+// src/screens/DashboardScreen.tsx
 import React from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { ScrollView, View, Button, StyleSheet, Text } from 'react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../App';
 
-export default function DashboardScreen({ navigation }: any) {
-  const [question, setQuestion] = React.useState('');
-  const [aiReply, setAiReply] = React.useState('AI response will appear here...');
+type Nav = NativeStackNavigationProp<RootStackParamList, 'Dashboard'>;
 
+export default function DashboardScreen({ navigation }: { navigation: Nav }) {
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Dashboard</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Do You Agree • Demo Menu</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Your Question:</Text>
-        <TextInput
-          style={styles.textArea}
-          multiline
-          placeholder="Type your question here..."
-          value={question}
-          onChangeText={setQuestion}
-          testID="question-input"
-        />
-
-        <Text style={styles.label}>Canned Select:</Text>
-        <View style={styles.selectPlaceholder}>
-          <Text style={styles.selectText}>Select a canned question...</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Core Flow</Text>
+        <View style={styles.gap}>
+          <Button title="Ask" onPress={() => navigation.navigate('Ask')} />
         </View>
-
-        <Pressable style={styles.button} testID="generate-btn">
-          <Text style={styles.buttonText}>Generate AI Response</Text>
-        </Pressable>
-
-        <Text style={styles.label}>AI Output:</Text>
-        <View style={styles.aiOutputBox}>
-          <Text style={styles.aiOutputText} testID="ai-output">{aiReply}</Text>
-        </View>
-
-        <View style={styles.actionButtons}>
-          <Pressable style={[styles.actionButton, styles.supportButton]} testID="support-btn">
-            <Text style={styles.actionButtonText}>Support</Text>
-          </Pressable>
-          <Pressable style={[styles.actionButton, styles.dontSupportButton]} testID="dont-support-btn">
-            <Text style={styles.actionButtonText}>Don't Support</Text>
-          </Pressable>
+        <View style={styles.gap}>
+          <Button
+            title="Vote (with sample params)"
+            onPress={() => navigation.navigate('Vote', { question: 'Is homework optional?', reply: 'Yes' })}
+          />
         </View>
       </View>
 
-      <Pressable style={styles.navButton} onPress={() => navigation.navigate('PostCreation')}>
-        <Text style={styles.navButtonText}>Create New Post</Text>
-      </Pressable>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Admin</Text>
+        <View style={styles.gap}>
+          <Button title="Admin • Posts" onPress={() => navigation.navigate('AdminPostManagement')} />
+        </View>
+        <View style={styles.gap}>
+          <Button title="Admin • Users" onPress={() => navigation.navigate('AdminUserManagement')} />
+        </View>
+      </View>
 
-      <Pressable style={styles.navButton} onPress={() => navigation.navigate('Settings')}>
-        <Text style={styles.navButtonText}>Go to Settings</Text>
-      </Pressable>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Posts</Text>
+        <View style={styles.gap}>
+          <Button title="Create Post" onPress={() => navigation.navigate('PostCreation')} />
+        </View>
+        <View style={styles.gap}>
+          <Button title="Single Post" onPress={() => navigation.navigate('SinglePostView')} />
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Preferences</Text>
+        <View style={styles.gap}>
+          <Button title="Settings" onPress={() => navigation.navigate('Settings')} />
+        </View>
+        <View style={styles.gap}>
+          <Button title="Privacy Settings" onPress={() => navigation.navigate('Privacy')} />
+        </View>
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f6f6f6', padding: 16 },
-  title: { fontSize: 18, fontWeight: '600', marginVertical: 8 },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#e5e5e5', marginBottom: 12 },
-  label: { fontSize: 14, fontWeight: '500', marginTop: 12, marginBottom: 4 },
-  textArea: {
-    borderWidth: 1, borderColor: '#e5e5e5', borderRadius: 8, padding: 10,
-    minHeight: 80, textAlignVertical: 'top', backgroundColor: '#fafafa',
+  container: {
+    padding: 16,
+    gap: 12,
   },
-  selectPlaceholder: {
-    borderWidth: 1, borderColor: '#e5e5e5', borderRadius: 8, padding: 10,
-    backgroundColor: '#fafafa', justifyContent: 'center', height: 40,
+  title: {
+    color: '#e2e8f0',
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
   },
-  selectText: { color: '#888' },
-  button: {
-    backgroundColor: '#5b4db7', padding: 12, borderRadius: 8,
-    alignItems: 'center', marginTop: 16,
+  section: {
+    backgroundColor: '#111827',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#1f2937',
   },
-  buttonText: { color: '#fff', fontWeight: '600' },
-  aiOutputBox: {
-    borderWidth: 1, borderColor: '#e5e5e5', borderRadius: 8, padding: 10,
-    minHeight: 100, backgroundColor: '#fafafa', marginTop: 8,
+  sectionTitle: {
+    color: '#cbd5e1',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
   },
-  aiOutputText: { color: '#333' },
-  actionButtons: {
-    flexDirection: 'row', justifyContent: 'space-around', marginTop: 16,
+  gap: {
+    marginBottom: 8,
   },
-  actionButton: {
-    flex: 1, padding: 12, borderRadius: 8, alignItems: 'center', marginHorizontal: 4,
-  },
-  supportButton: { backgroundColor: '#28a745' },
-  dontSupportButton: { backgroundColor: '#dc3545' },
-  actionButtonText: { color: '#fff', fontWeight: '600' },
-  navButton: {
-    backgroundColor: '#5b4db7', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 12,
-  },
-  navButtonText: { color: '#fff', fontWeight: '600' },
 });
