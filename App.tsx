@@ -1,3 +1,4 @@
+// App.tsx
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -30,16 +31,32 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Ask">
-        <Stack.Screen name="Ask" component={AskScreen} />
-        <Stack.Screen name="Vote" component={VoteScreen} />
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
-        <Stack.Screen name="AdminPostManagement" component={AdminPostManagementScreen} />
-        <Stack.Screen name="AdminUserManagement" component={AdminUserManagementScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-        <Stack.Screen name="Privacy" component={PrivacyScreen} />
-        <Stack.Screen name="PostCreation" component={PostCreationScreen} />
-        <Stack.Screen name="SinglePostView" component={SinglePostViewScreen} />
+      <Stack.Navigator
+        initialRouteName="Dashboard"
+        screenOptions={{
+          headerTitleAlign: 'center',
+          headerStyle: { backgroundColor: '#0f172a' },
+          headerTintColor: '#ffffff',
+          contentStyle: { backgroundColor: '#0b1220' },
+        }}
+      >
+        <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'Dashboard' }} />
+        <Stack.Screen name="Ask" component={AskScreen} options={{ title: 'Ask' }} />
+        <Stack.Screen name="Vote" component={VoteScreen} options={{ title: 'Vote' }} />
+        <Stack.Screen
+          name="AdminPostManagement"
+          component={AdminPostManagementScreen}
+          options={{ title: 'Admin • Posts' }}
+        />
+        <Stack.Screen
+          name="AdminUserManagement"
+          component={AdminUserManagementScreen}
+          options={{ title: 'Admin • Users' }}
+        />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
+        <Stack.Screen name="Privacy" component={PrivacyScreen} options={{ title: 'Privacy Settings' }} />
+        <Stack.Screen name="PostCreation" component={PostCreationScreen} options={{ title: 'Create Post' }} />
+        <Stack.Screen name="SinglePostView" component={SinglePostViewScreen} options={{ title: 'Post' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
