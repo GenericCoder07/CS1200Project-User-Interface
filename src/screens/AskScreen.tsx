@@ -26,31 +26,23 @@ export default function AskScreen({ navigation }: Props) {
 
   const count = useMemo(() => q.length, [q]);
 
-  const buildReply = (question: string) => {
-    const base =
-      `Here's a quick, balanced take on: "${question}". ` +
-      `Pros may include convenience, engagement, or alignment with user preferences; ` +
-      `cons might involve trade-offs in cost, complexity, or unintended side-effects. ` +
-      `Consider a small, time-boxed trial, gather feedback, and iterate. ` +
-      `Clear goals and metrics make the decision reversible while learning fast.`;
-    return trimToWords(base, 200);
-  };
-
   const onGo = async () => {
     const text = q.trim();
     if (!text) return;
 
     setLoading(true);
     try {
+      console.log('Get AI Reply tapped, question:', text);
+
       const resp = await fetch('https://umpyr.tech/api/ai/can', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // If your teammate requires auth, add it here:
-          // 'Authorization': 'Bearer <token>',
         },
-        body: JSON.stringify({ quantity: 4 }), // adjust if they want { question: text, quantity: 4 }
+        body: JSON.stringify({ quantity: 4, question: text }),
       });
+
+      console.log('Fetch status:', resp.status);
 
       if (!resp.ok) {
         const errorText = await resp.text().catch(() => '');
@@ -58,6 +50,7 @@ export default function AskScreen({ navigation }: Props) {
       }
 
       const data = await resp.json();
+      console.log('Response data keys:', Object.keys(data || {}));
 
       if (data.successful !== true) {
         throw new Error(data['response-text'] || 'Backend returned unsuccessful');
@@ -70,15 +63,14 @@ export default function AskScreen({ navigation }: Props) {
         data['ai-text-4'],
       ].filter(Boolean);
 
-      const combined = items.length
-        ? items.join('\n• ')
-        : 'No AI text returned.';
+      const combined = items.length ? items.join('\n• ') : 'No AI text returned.';
 
       navigation.navigate('Vote', {
         question: text,
         reply: `AI suggestions:\n• ${combined}`,
       });
     } catch (err: any) {
+      console.error('onGo error:', err);
       Alert.alert('Failed to get AI reply', err?.message ?? String(err));
     } finally {
       setLoading(false);
