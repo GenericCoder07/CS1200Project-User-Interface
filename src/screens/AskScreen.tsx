@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { Colors } from '../theme';
@@ -22,12 +22,13 @@ function trimToWords(s: string, maxWords = 200) {
 
 export default function AskScreen({ navigation }: Props) {
   const [q, setQ] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const count = useMemo(() => q.length, [q]);
 
   const buildReply = (question: string) => {
     const base =
-      `Here’s a quick, balanced take on: “${question}”. ` +
+      `Here's a quick, balanced take on: "${question}". ` +
       `Pros may include convenience, engagement, or alignment with user preferences; ` +
       `cons might involve trade-offs in cost, complexity, or unintended side-effects. ` +
       `Consider a small, time-boxed trial, gather feedback, and iterate. ` +
@@ -35,11 +36,53 @@ export default function AskScreen({ navigation }: Props) {
     return trimToWords(base, 200);
   };
 
-  const onGo = () => {
+  const onGo = async () => {
     const text = q.trim();
     if (!text) return;
-    const reply = buildReply(text);
-    navigation.navigate('Vote', { question: text, reply });
+
+    setLoading(true);
+    try {
+      const resp = await fetch('https://umpyr.tech/api/ai/can', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // If your teammate requires auth, add it here:
+          // 'Authorization': 'Bearer <token>',
+        },
+        body: JSON.stringify({ quantity: 4 }), // adjust if they want { question: text, quantity: 4 }
+      });
+
+      if (!resp.ok) {
+        const errorText = await resp.text().catch(() => '');
+        throw new Error(`HTTP ${resp.status}: ${errorText}`);
+      }
+
+      const data = await resp.json();
+
+      if (data.successful !== true) {
+        throw new Error(data['response-text'] || 'Backend returned unsuccessful');
+      }
+
+      const items = [
+        data['ai-text-1'],
+        data['ai-text-2'],
+        data['ai-text-3'],
+        data['ai-text-4'],
+      ].filter(Boolean);
+
+      const combined = items.length
+        ? items.join('\n• ')
+        : 'No AI text returned.';
+
+      navigation.navigate('Vote', {
+        question: text,
+        reply: `AI suggestions:\n• ${combined}`,
+      });
+    } catch (err: any) {
+      Alert.alert('Failed to get AI reply', err?.message ?? String(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const useCanned = (text: string) => setQ(text);
@@ -80,10 +123,14 @@ export default function AskScreen({ navigation }: Props) {
           </Pressable>
           <Pressable
             onPress={onGo}
-            style={[styles.btn, styles.primary, !q.trim() ? { opacity: 0.5 } : null]}
-            disabled={!q.trim()}
+            style={[styles.btn, styles.primary, (!q.trim() || loading) ? { opacity: 0.5 } : null]}
+            disabled={!q.trim() || loading}
           >
-            <Text style={[styles.btnText, { color: '#fff' }]}>Get AI Reply</Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={[styles.btnText, { color: '#fff' }]}>Get AI Reply</Text>
+            )}
           </Pressable>
         </View>
       </View>
