@@ -1,3 +1,4 @@
+// src/screens/AskScreen.tsx
 import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -26,6 +27,46 @@ export default function AskScreen({ navigation }: Props) {
 
   const count = useMemo(() => q.length, [q]);
 
+  const AI_URL = 'https://umpyr.tech/api/ai'; // <- updated endpoint
+
+  const fetchAiReplies = async (userText: string) => {
+    try {
+      console.log('Calling AI with:', JSON.stringify({ msg: userText }), '->', AI_URL);
+      const resp = await fetch(AI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ msg: userText }), // <- send as { msg: "<text>" }
+      });
+      console.log('AI fetch status', resp.status);
+      if (!resp.ok) {
+        const txt = await resp.text().catch(() => '');
+        throw new Error(`HTTP ${resp.status}: ${txt}`);
+      }
+      const data = await resp.json();
+      console.log('AI response keys:', Object.keys(data || {}));
+
+      // prefer single clean field, then fall back to ai-text parts
+      let aiReply =
+        data['response-text'] ||
+        data.response ||
+        data.reply ||
+        data.aiReply ||
+        data.ai_reply;
+
+      if (!aiReply) {
+        const parts = ['ai-text-1','ai-text-2','ai-text-3','ai-text-4']
+          .map(k => (data[k] || '').trim())
+          .filter(Boolean);
+        aiReply = parts.join('\n\n');
+      }
+
+      return aiReply || null;
+    } catch (err: any) {
+      console.error('fetchAiReplies error', err);
+      return null;
+    }
+  };
+
   const onGo = async () => {
     const text = q.trim();
     if (!text) return;
@@ -33,41 +74,21 @@ export default function AskScreen({ navigation }: Props) {
     setLoading(true);
     try {
       console.log('Get AI Reply tapped, question:', text);
+      const aiReply = await fetchAiReplies(text);
 
-      const resp = await fetch('https://umpyr.tech/api/ai/can', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ quantity: 4, question: text }),
-      });
-
-      console.log('Fetch status:', resp.status);
-
-      if (!resp.ok) {
-        const errorText = await resp.text().catch(() => '');
-        throw new Error(`HTTP ${resp.status}: ${errorText}`);
+      if (!aiReply) {
+        Alert.alert('Failed to get AI reply', 'Server returned no reply. Using demo fallback.');
+        // demo fallback
+        navigation.navigate('Vote', {
+          question: text,
+          reply: `Mock AI suggestions:\n• Quick take: This is an interesting prompt.\n• Short summary: Pros and cons exist.`,
+        });
+        return;
       }
-
-      const data = await resp.json();
-      console.log('Response data keys:', Object.keys(data || {}));
-
-      if (data.successful !== true) {
-        throw new Error(data['response-text'] || 'Backend returned unsuccessful');
-      }
-
-      const items = [
-        data['ai-text-1'],
-        data['ai-text-2'],
-        data['ai-text-3'],
-        data['ai-text-4'],
-      ].filter(Boolean);
-
-      const combined = items.length ? items.join('\n• ') : 'No AI text returned.';
 
       navigation.navigate('Vote', {
         question: text,
-        reply: `AI suggestions:\n• ${combined}`,
+        reply: aiReply,
       });
     } catch (err: any) {
       console.error('onGo error:', err);
